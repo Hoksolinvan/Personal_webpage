@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Hoksolinvan_Chhun</title></head>
+    
+    <body style="background-color:black; display:flex; height: 100vh; justify-content:center; align-items:center;">
+        <canvas id="canvas" width="700" height="700" style="background-color:white;"></canvas>
+
+        <script>
+            const matrix = [
+                [1,1,1,1,1,1,1,1],
+                [1,2,2,2,2,0,0,1],
+                [1,0,0,0,0,0,0,1],
+                [1,0,2,0,0,0,0,1],
+                [1,0,2,0,0,0,0,1],
+                [1,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1]
+            ];
+
+            const data = {"frames":{"New Piskel0.png":{"frame":{"x":0,"y":0,"w":47,"h":32}},"New Piskel1.png":{"frame":{"x":0,"y":32,"w":47,"h":32}},"New Piskel2.png":{"frame":{"x":0,"y":64,"w":47,"h":32}},"New Piskel3.png":{"frame":{"x":0,"y":96,"w":47,"h":32}},"New Piskel4.png":{"frame":{"x":0,"y":128,"w":47,"h":32}},"New Piskel5.png":{"frame":{"x":0,"y":160,"w":47,"h":32}},"New Piskel6.png":{"frame":{"x":0,"y":192,"w":47,"h":32}},"New Piskel7.png":{"frame":{"x":0,"y":224,"w":47,"h":32}},"New Piskel8.png":{"frame":{"x":0,"y":256,"w":47,"h":32}}}};
+
+            const frame_location = [];
+            for (const key in data.frames) {
+                const frame = data.frames[key].frame;
+                frame_location.push([frame.x, frame.y, frame.w, frame.h]);
+            }
+
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+
+
+
+             function loadImages(input_string){
+                return new Promise((resolve,reject) =>{
+                    const image = new Image();
+                    image.src = input_string;
+
+                    image.onload = () => resolve(image);
+                    image.onerror = () => reject;
+
+                });
+            }
+
+        async function init(){
+            const player =  await loadImages("assets/sprite_character/New Piskel.png");
+            const floorsWall =  await loadImages("assets/sprite_furnitures/darkwood_floor.png");
+            //const decorations = loadImages("assets/sprite_character/sprite_furnitures/decorations_LRK.png");
+           // const doorsWindows = loadImages("assets/sprite_character/sprite_furnitures/doorswindowsstairs_LRK.png");
+           // const livingroom = loadImages("assets/sprite_character/sprite_furnitures/livingroom_LRK.png");
+           // const cabinets = loadImages("assets/sprite_character/sprite_furnitures/cabinets_LRK.png");
+            
+            ctx.imageSmoothingEnabled = false;
+
+
+            for(let i =0; i<700;i+=100){
+                for(let j = 0; j<700;j+=100){
+                ctx.drawImage(floorsWall,i,j,100,100);
+                }
+            }
+           
+
+           
+          
+        }
+
+
+        init();
+         
+            
+        </script>
+    </body>
+</html>
