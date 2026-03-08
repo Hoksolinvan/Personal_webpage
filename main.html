@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
-    <head><title>Hoksolinvan_Chhun</title></head>
+    <head><title>Hoksolinvan_Chhun</title>
+    <link rel="icon" type="image/png" href="favicon.png"> 
+    </head>
     
     <body style="background-color:black; display:flex; height: 100vh; justify-content:center; align-items:center;">
         <canvas id="canvas" width="700" height="700" style="background-color:white;"></canvas>
@@ -44,22 +46,41 @@
         async function init(){
             const player =  await loadImages("assets/sprite_character/New Piskel.png");
             const floorsWall =  await loadImages("assets/sprite_furnitures/darkwood_floor.png");
-            //const decorations = loadImages("assets/sprite_character/sprite_furnitures/decorations_LRK.png");
-           // const doorsWindows = loadImages("assets/sprite_character/sprite_furnitures/doorswindowsstairs_LRK.png");
-           // const livingroom = loadImages("assets/sprite_character/sprite_furnitures/livingroom_LRK.png");
-           // const cabinets = loadImages("assets/sprite_character/sprite_furnitures/cabinets_LRK.png");
+            const floorsWall_lrk = await loadImages("assets/sprite_furnitures/floorswalls_LRK.png");
+            const desk = await loadImages("assets/sprite_furnitures/desk_updated.png");
+            const carpet = await loadImages("assets/sprite_furnitures/carpet.png");
+            const cat = await loadImages("assets/sprite_furnitures/Cat copy.png");
+            const bed = await loadImages("assets/sprite_furnitures/master_bed.png")
+            const computer = await loadImages("assets/sprite_furnitures/ibm5150_animated.gif");
             
             ctx.imageSmoothingEnabled = false;
 
 
+        function render(){
             for(let i =0; i<700;i+=100){
-                for(let j = 0; j<700;j+=100){
+                for(let j = 0; j<100;j+=100){
                 ctx.drawImage(floorsWall,i,j,100,100);
                 }
             }
-           
 
+            for(let i =0; i<700; i+=100){
+                for(let j=100; j<700;j+=100){
+                    ctx.drawImage(floorsWall_lrk,i,j,100,100);
+                }
+            }
+
+            ctx.drawImage(desk,-10,5,200,100);
+            ctx.drawImage(computer,100,100,50,50);
+
+            ctx.drawImage(carpet,300,300,200,200);
+            ctx.drawImage(cat,365,350,75,75);
+
+            ctx.drawImage(bed,0,300,200,200);
            
+            requestAnimationFrame(render);
+        }
+
+        render();
           
         }
 
