@@ -2,6 +2,7 @@
 <html>
     <head><title>Hoksolinvan_Chhun</title>
     <link rel="icon" type="image/png" href="favicon.png"> 
+   <script src="https://unpkg.com/gifler@0.1.0/gifler.min.js"></script>
     </head>
     
     <body style="background-color:black; display:flex; height: 100vh; justify-content:center; align-items:center;">
@@ -19,6 +20,10 @@
                 [1,1,1,1,1,1,1,1]
             ];
 
+            
+
+
+
             const data = {"frames":{"New Piskel0.png":{"frame":{"x":0,"y":0,"w":47,"h":32}},"New Piskel1.png":{"frame":{"x":0,"y":32,"w":47,"h":32}},"New Piskel2.png":{"frame":{"x":0,"y":64,"w":47,"h":32}},"New Piskel3.png":{"frame":{"x":0,"y":96,"w":47,"h":32}},"New Piskel4.png":{"frame":{"x":0,"y":128,"w":47,"h":32}},"New Piskel5.png":{"frame":{"x":0,"y":160,"w":47,"h":32}},"New Piskel6.png":{"frame":{"x":0,"y":192,"w":47,"h":32}},"New Piskel7.png":{"frame":{"x":0,"y":224,"w":47,"h":32}},"New Piskel8.png":{"frame":{"x":0,"y":256,"w":47,"h":32}}}};
 
             const frame_location = [];
@@ -26,6 +31,8 @@
                 const frame = data.frames[key].frame;
                 frame_location.push([frame.x, frame.y, frame.w, frame.h]);
             }
+
+          
 
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
@@ -42,8 +49,26 @@
 
                 });
             }
+            const canvas_two = document.createElement('canvas');
+
+
+            function onDrawFrame(ctx,frame) {
+                canvas_two.width = frame.width;
+                canvas_two.height = frame.height;
+
+                ctx.drawImage(frame.buffer,0,0);
+                
+            }
+
+            script.onload = () => {
+                gifler('https://konvajs.org/assets/yoda.gif').frames(canvas, onDrawFrame);
+            }
 
         async function init(){
+
+            const offscreen = document.createElement('canvas');
+            offscreen.width = 100;
+            offscreen.height = 100;
             const player =  await loadImages("assets/sprite_character/New Piskel.png");
             const floorsWall =  await loadImages("assets/sprite_furnitures/darkwood_floor.png");
             const floorsWall_lrk = await loadImages("assets/sprite_furnitures/floorswalls_LRK.png");
@@ -51,11 +76,15 @@
             const carpet = await loadImages("assets/sprite_furnitures/carpet.png");
             const cat = await loadImages("assets/sprite_furnitures/Cat copy.png");
             const bed = await loadImages("assets/sprite_furnitures/master_bed.png")
-            const computer = await loadImages("assets/sprite_furnitures/ibm5150_animated.gif");
+            //const computer = await loadGif("assets/sprite_furnitures/ibm5150_animated.gif");
             
+
             ctx.imageSmoothingEnabled = false;
 
 
+gifler('assets/sprite_furnitures/ibm5150_animated.gif').frames(offscreen, (gifCtx, frame) => {
+        gifCtx.drawImage(frame.buffer, 100, 100, 100, 100);
+    });            
         function render(){
             for(let i =0; i<700;i+=100){
                 for(let j = 0; j<100;j+=100){
@@ -70,13 +99,14 @@
             }
 
             ctx.drawImage(desk,-10,5,200,100);
-            ctx.drawImage(computer,100,100,50,50);
+           // ctx.drawImage(computer,100,100,50,50);
 
             ctx.drawImage(carpet,300,300,200,200);
             ctx.drawImage(cat,365,350,75,75);
 
             ctx.drawImage(bed,0,300,200,200);
-           
+
+            
             requestAnimationFrame(render);
         }
 
