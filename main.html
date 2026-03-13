@@ -5,10 +5,40 @@
     <script src="https://unpkg.com/gifler@0.1.0/gifler.min.js"></script>
     </head>
     
-    <body style="background-color:black; display:flex; height: 100vh; justify-content:center; align-items:center;">
+    <body id="body_element" style="background-color:black; display:flex; height: 100vh; justify-content:center; align-items:center;">
         <canvas id="canvas" width="700" height="700" style="background-color:white;"></canvas>
 
         <script>
+
+            let global_counter_y =0;
+            let global_counter_x = 0;
+            let current_direction=4;
+            document.addEventListener('keydown',(e)=>{
+                switch(e.code){
+                    case 'KeyW': 
+                    global_counter_y+=10;
+                    current_direction=1;
+                    console.log(global_counter_y);
+                    break;
+                    case 'KeyA':
+                    global_counter_x-=10;
+                    current_direction=2;
+                    console.log(global_counter_x);
+                    break;
+                    case 'KeyS':
+                    global_counter_y-=10;
+                    current_direction=3;
+                    console.log(global_counter_y);
+                    break;
+                    default:
+                    global_counter_x+=10;
+                    current_direction=4;
+                    console.log(global_counter_x);
+                    break;
+                }
+            });
+
+
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
             
@@ -55,6 +85,7 @@ const CAT_FPS = 8;
                 const flowerPot = await loadImages("assets/sprite_furnitures/Flower.png");
                 const table_2 = await loadImages("assets/sprite_furnitures/interior_free.png");
                 const book = await loadImages("assets/sprite_furnitures/book_transparent.png");
+                const joystick = await loadImages("assets/sprite_furnitures/joystick.png");
                 const kettlebell = await loadImages("assets/sprite_furnitures/kettlebell.png");
                 ctx.imageSmoothingEnabled = false;
 
@@ -84,6 +115,7 @@ const CAT_FPS = 8;
                     ctx.drawImage(offscreen2,10,485,55,55);
                     ctx.drawImage(book,100,15,40,40);
                     ctx.drawImage(kettlebell,-25,550,125,125);
+                    ctx.drawImage(joystick,15,625,50,50);
 
                     if (timestamp - lastTime > 1000 / CAT_FPS) {
         frame_index = (frame_index + 1) % 4;
