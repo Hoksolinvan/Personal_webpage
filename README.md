@@ -9,4 +9,4 @@ Here you will find an interative 2D pixelated environment where you can interact
 This implementation was done using purely HTML and Javascript canvas 2D rendering engine. An External Javascript library was 
 
 
-<img src="sample" alt="example />
+<img src="sample.png" alt="example />
