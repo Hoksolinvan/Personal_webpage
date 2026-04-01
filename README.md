@@ -13,7 +13,16 @@ Other than the player character asset that was manually illustrated using [Piske
 
 ## 🎮 How to use it? 
 
-Like in most video games, you control it via the WASD key for player movement. To interact with objects you make use of the E key (or if you like to occasionally see what's going on in my head you can always spam it 😭). Take the time to explore my room and get to know a bit more about me 😁!
+Like in most video games, you control it via the WASD key for player movement. 
+
+<img src="WASD.jpg" alt="WASD" width="200px" height="200px" />
 
 
+To interact with objects you make use of the E key (or if you like to occasionally see what's going on in my head you can always spam it 😭). Take the time to explore my room and get to know a bit more about me 😁!
+
+
+
+
+
+## Here's an image of what my room looks like!
 <img src="sample.png" alt="example" width="500px" height="500px"/>
