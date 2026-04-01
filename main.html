@@ -29,29 +29,49 @@
     
     <body id="body_element" style="background-color:black; height: 100vh; width: 100vw;">
 
+        <audio id="bgm" loop autoplay><source src="assets/audio/I_really_want_to_stay_at_your_house.mp3" type="audio/mpeg"></audio>
+
         <div style=" display:flex;  justify-content:center; align-items:center;">
         <canvas id="canvas" width="700" height="700" style="background-color:white;"></canvas>
         </div>
+
+        
 
 
         <div id="text_id"><p style="margin-left:-4%; margin-top:0%; font-weight:900;">Van</p><div style="margin-top:-3%; word-wrap:break-word;"></div></div>
 
         <script>
+            let audio= false;
+
+            document.addEventListener("click",()=>{
+                const current = document.getElementById("bgm");
+                if(!audio){
+        
+                current.play();
+                audio=true;
+                }
+                else {
+
+                    audio=false;
+                    current.pause();
+                }
+            });
 
             let global_counter_y =100;
             let global_counter_x = 100;
-            let global_state = "D";
+            let global_state = "UD";
             let W_frame = 0;
             let A_frame = 0;
             let S_frame = 0;
             let D_frame = 0;
             let current_direction=4;
 
-            // ✅ NEW: key state tracking
             let keys = {};
+            let upkeys = {};
 
             document.addEventListener('keydown',(e)=>{
                 keys[e.code] = true;
+                upkeys[e.code]=false;
 
                 // keep your E toggle
                 if (e.code === 'KeyE' && !e.repeat) {
@@ -67,8 +87,24 @@
             });
 
             document.addEventListener('keyup',(e)=>{
+                
                 keys[e.code] = false;
+                if(e.code=="KeyW"){
+                    global_state="UU";
+                }
+                else if(e.code=="KeyS"){
+                    global_state="UD";
+                }
+                else if(e.code =="KeyA"){
+                    global_state="UL";
+                }
+                else if(e.code=="KeyD"){
+                    global_state="UR";
+                }
+                upkeys[e.code]=true;
             });
+
+            
 
 
             const canvas = document.getElementById("canvas");
@@ -76,12 +112,23 @@
             
             const data = {"frames":{"New Piskel0.png":{"frame":{"x":0,"y":0,"w":47,"h":32}},"New Piskel1.png":{"frame":{"x":0,"y":32,"w":47,"h":32}},"New Piskel2.png":{"frame":{"x":0,"y":64,"w":47,"h":32}},"New Piskel3.png":{"frame":{"x":0,"y":96,"w":47,"h":32}},"New Piskel4.png":{"frame":{"x":0,"y":128,"w":47,"h":32}},"New Piskel5.png":{"frame":{"x":0,"y":160,"w":47,"h":32}},"New Piskel6.png":{"frame":{"x":0,"y":192,"w":47,"h":32}},"New Piskel7.png":{"frame":{"x":0,"y":224,"w":47,"h":32}},"New Piskel8.png":{"frame":{"x":0,"y":256,"w":47,"h":32}}}};
             const player_frames = [[0,0,47,32],[0,32,47,32],[0,64,47,32],[0,96,47,32],[0,128,47,32],[0,160,47,32],[0,192,47,32],[0,224,47,32],[0,256,47,32]];
+            const player_left_frames = [[0,64,47,32],[0,64,47,32],[0,160,47,32],[0,160,47,32],[0,256,47,32],[0,256,47,32]];
+            const player_down_frames = [[0,96,47,32],[0,96,47,32],[0,192,47,32],[0,192,47,32]]; //[0,0,47,32],[0,0,47,32],
+            const player_up_frames = [[0,128,47,32],[0,128,47,32],[0,224,47,32],[0,224,47,32]];
 
+            const player_right_frames = [[0,64,47,32],[0,64,47,32],[0,97.1,47,32],[0,97.1,47,32],[0,128,47,32],[0,128,47,32]];
+            
             const cat_frames = [[0,0,32,32],[32,0,32,32],[64,0,32,32],[96,0,32,32]];
 
             let frame_index = 0;
+            let player_frame_right_index = 0;
+            let player_frame_left_index =0;
+            let player_frame_down_index =0;
+            let player_frame_up_index =0;
             let lastTime = 0;
+            let catlastTime =0;
             const CAT_FPS = 8;
+            const PLAYER_FPS = 8;
 
             const frame_location = [];
             for (const key in data.frames) {
@@ -106,6 +153,7 @@
 
             async function init() {
                 const player        = await loadImages("assets/sprite_character/New Piskel.png");
+                const flipped_player = await loadImages("assets/sprite_character/New Piskel-2.png");
                 const floorsWall    = await loadImages("assets/sprite_furnitures/darkwood_floor.png");
                 const floorsWall_lrk = await loadImages("assets/sprite_furnitures/floorswalls_LRK.png");
                 const desk          = await loadImages("assets/sprite_furnitures/desk_updated.png");
@@ -126,38 +174,49 @@
                 function render(timestamp) {
                     ctx.clearRect(0, 0, 700, 700);
 
-                    // ✅ NEW: movement + state
                     let isMoving = false;
 
                     if (keys['KeyW']) {
                         if (global_counter_y > 0) global_counter_y -= 2;
                         global_state = "U";
+                         if(timestamp - lastTime > 1000 / PLAYER_FPS){
+                            player_frame_up_index = (player_frame_up_index+1) % 4;
+                            lastTime = timestamp;
+                        }
                         isMoving = true;
                     }
+
+                
                     if (keys['KeyA']) {
                         if (global_counter_x > 0) global_counter_x -= 2;
                         global_state = "L";
+                         if(timestamp - lastTime > 1000 / PLAYER_FPS){
+                            player_frame_left_index = (player_frame_left_index+1) % 6;
+                            lastTime = timestamp;
+                        }
                         isMoving = true;
                     }
                     if (keys['KeyS']) {
                         if (global_counter_y < 590) global_counter_y += 2;
                         global_state = "D";
+                        if(timestamp - lastTime > 1000 / PLAYER_FPS){
+                            player_frame_down_index = (player_frame_down_index+1) % 4;
+                            lastTime = timestamp;
+                        }
+                       
                         isMoving = true;
                     }
                     if (keys['KeyD']) {
                         if (global_counter_x < 640) global_counter_x += 2;
                         global_state = "R";
+                        if(timestamp - lastTime > 1000 / PLAYER_FPS){
+                            player_frame_right_index = (player_frame_right_index+1) % 6;
+                            lastTime = timestamp;
+                        }
                         isMoving = true;
                     }
 
-                    // ✅ NEW: idle vs animation
-                    if (isMoving) {
-                        W_frame = (W_frame + 1) % 2;
-                    } else {
-                        W_frame = 0;
-                    }
-
-                    // floors
+                   
                     for (let i = 0; i < 700; i += 100) {
                         ctx.drawImage(floorsWall, i, 0, 100, 100);
                     }
@@ -180,28 +239,39 @@
                     ctx.drawImage(book,100,15,40,40);
                     ctx.drawImage(kettlebell,-25,550,125,125);
                     ctx.drawImage(joystick,15,625,50,50);
-
-                    if (timestamp - lastTime > 1000 / CAT_FPS) {
+                    
+                    if (timestamp - catlastTime > 1000 / PLAYER_FPS) {
                         frame_index = (frame_index + 1) % 4;
-                        lastTime = timestamp;
+                        catlastTime = timestamp;
                     }
-
-                    // ⚠️ only small change: use W_frame offset
-                    if(global_state=="D"){
-                        ctx.drawImage(player,...player_frames[0 + W_frame],global_counter_x,global_counter_y,175,150);
-                    }
-                    else if(global_state=="U"){
-                        ctx.drawImage(player,...player_frames[1 + W_frame],global_counter_x,global_counter_y,175,150);
-                    }
-                    else if(global_state=="L"){
-                        ctx.drawImage(player,...player_frames[2 + W_frame],global_counter_x,global_counter_y,175,150);
-                    }
-                    else if(global_state=="R"){
-                        ctx.drawImage(player,...player_frames[3 + W_frame],global_counter_x,global_counter_y,175,150);
-                    }
-
                     const [sx,sy,sw,sh] = cat_frames[frame_index];
                     ctx.drawImage(cat,sx,sy,sw,sh, 337, 290, 120, 120);
+
+                    if(global_state=="D"){
+                        ctx.drawImage(player,...player_down_frames[player_frame_down_index + W_frame],global_counter_x,global_counter_y,175,150);
+                    }
+                    else if(global_state=="U"){
+                        ctx.drawImage(player,...player_up_frames[player_frame_up_index+ W_frame],global_counter_x,global_counter_y,175,150);
+                    }
+                    else if(global_state=="L"){
+                        ctx.drawImage(player,...player_left_frames[player_frame_left_index + W_frame],global_counter_x,global_counter_y,175,150);
+                    }
+                    else if(global_state=="R"){
+                        ctx.drawImage(flipped_player,...player_right_frames[player_frame_right_index+W_frame],global_counter_x,global_counter_y+5,175,150);
+                    }
+                    else if(global_state=="UD"){
+                        ctx.drawImage(player,...player_frames[0],global_counter_x,global_counter_y,175,150);
+                    }
+                    else if(global_state=="UU"){
+                        ctx.drawImage(player,...player_frames[1],global_counter_x,global_counter_y,175,150);
+                    }
+                    else if(global_state=="UL"){
+                        ctx.drawImage(player,...player_frames[2],global_counter_x,global_counter_y,175,150);
+                    }
+                    else if(global_state=="UR"){
+                        ctx.drawImage(flipped_player,...player_right_frames[0],global_counter_x,global_counter_y+5,175,150);
+                    }
+
 
                     requestAnimationFrame(render);
                 }
