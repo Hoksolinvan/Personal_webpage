@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Hoksolinvan_Chhun</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png"> 
+    <script src="https://unpkg.com/gifler@0.1.0/gifler.min.js"></script>
+    <style>
+
+        #text_id { 
+            width:100vw;
+            height: 25%;
+            background-color: aliceblue;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            visibility: hidden;
+            font-family: "Pixelify Sans", sans-serif;
+            font-size: 40px;
+            padding-left: 5%;
+            align-items: center;
+            border: 10px solid rgb(105, 12, 12);
+        }
+
+        #interact-hint {
+            position: absolute;
+            font-family: "Pixelify Sans", sans-serif;
+            font-size: 18px;
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 6px;
+            padding: 4px 10px;
+            pointer-events: none;
+            display: none;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+    </style>
+    </head>
+    
+    <body id="body_element" style="background-color:black; height: 100vh; width: 100vw;">
+
+        <audio id="bgm" loop autoplay><source src="assets/audio/I_really_want_to_stay_at_your_house.mp3" type="audio/mpeg"></audio>
+
+        <div style=" display:flex;  justify-content:center; align-items:center; position:relative;">
+        <canvas id="canvas" width="700" height="700" style="background-color:white;"></canvas>
+        <div id="interact-hint">[E] Interact</div>
+        </div>
+
+        <div id="text_id">
+            <p id="speaker-name" style="margin-left:-4%; margin-top:0%; font-weight:900;">Van</p>
+            <div id="dialog-text" style="margin-top:-3%; word-wrap:break-word;"></div>
+        </div>
+
+        <script>
+            let audio = false;
+
+            // ── Collision boxes ──────────────────────────────────────────────
+            const colliders = [
+                [-10, 13, 200, 25],
+                [0, 350, 183, 72],
+                [445, 250, 140, -30],
+                [630, 250, -35, 150],
+                [500, 410, -90, -90],
+                [0, 500, 60, 100]
+            ];
+
+            // ── Interaction zones ────────────────────────────────────────────
+            const interactables = [
+                {
+                    name: "Bed",
+                    x: 10, y: 340, w: 170, h: 160,
+                    lines: [
+                        "It's my bed. Super comfy.",
+                        "I like doing my assignments on my bed than at my desk!",
+                    ]
+                },
+                {
+                    name: "PC Desk",
+                    type: "computer",
+                    x: 10, y: 30, w: 180, h: 80,
+                },
+                {
+                    name: "Corner",
+                    x: 55, y: 475, w: 150, h: 230,
+                    lines: [
+                        "My little corner of the room.",
+                        "My favorite food is Ramen, I like playing video games and going to the Gym",
+                        "a Well-balanced life style"
+                    ]
+                },
+                {
+                    name: "Bookshelf",
+                    type: "book",
+                    x: 85, y: 10, w: 80, h: 100,
+                },
+                {
+                    name: "Cat",
+                    x: 350, y: 300, w: 90, h: 80,
+                    lines: [
+                        "If I had a cat I would name her Mochi",
+                        "She'd be an inspiration to all! No work, no rent; just meow meow all day!",
+                       
+                    ]
+                },
+                {
+                    name: "Table",
+                    x: 500, y: 200, w: 110, h: 100,
+                    lines: [
+                        "The coffee table.",
+                        "This plant has stood the test of time for 10,000 years",
+                        "and all I know is is it's nice and i'm not supposed to put it in my mouth"
+                    ]
+                },
+            ];
+
+            // ── Random thoughts (E with nothing nearby) ───────────────────────
+            const randomThoughts = [
+                "This room is very nice 10/10 from me!",
+                "If light is the fastest thing in the world, then how did the dark get there first?",
+                "Hey, Thanks for visiting my personal webpage! Hope your day is going great!",
+                "i should really finish that one side project",
+                "My favorite languages are Python and C++",
+                "My all-time favorite game is Dark Souls!",
+                "I like reading and making cool projects",
+                "Yeah, I'm running out of things to talk about",
+                "I'm a Graduate student at the University of Victoria (UVIC)",
+                "All my friends think i'm easy-going and reliable"
+            ];
+
+            // ── Book pages — fill these in yourself ───────────────────────────
+            const bookPages = [
+                "this is a page I wrote myself.",
+                "another thought. another day.",
+                "still figuring things out, and that's okay.",
+                "add more pages by editing bookPages[] in the code.",
+            ];
+
+            // ── Computer menu ─────────────────────────────────────────────────
+            const computerIntroLines = [
+                "This is my computer.",
+                "Here you can visit my GitHub and LinkedIn.",
+            ];
+            const computerMenuItems = [
+                { label: "GitHub",    url: "https://github.com/Hoksolinvan" },
+                { label: "LinkedIn",  url: "https://www.linkedin.com/in/hoksolinvan-chhun-83056b384/" },
+                { label: "Escape", url: null },
+            ];
+
+            // ── Dialog state ──────────────────────────────────────────────────
+            let dialogActive    = false;
+            let dialogLines     = [];
+            let dialogLineIndex = 0;
+            let dialogSpeaker   = "Van";
+            // "plain" | "computer" | "menu" | "book"
+            let dialogMode      = null;
+            let menuSelectedIndex = 0;
+
+            const textEl    = document.getElementById("text_id");
+            const speakerEl = document.getElementById("speaker-name");
+            const dialogEl  = document.getElementById("dialog-text");
+
+            function showBox(speaker, html) {
+                speakerEl.textContent = speaker;
+                dialogEl.innerHTML = html;
+                textEl.style.visibility = "visible";
+            }
+            function hideBox() {
+                textEl.style.visibility = "hidden";
+                dialogActive = false;
+                dialogMode   = null;
+            }
+
+            // plain dialog
+            function openDialog(obj) {
+                dialogActive    = true;
+                dialogMode      = "plain";
+                dialogLines     = obj.lines;
+                dialogLineIndex = 0;
+                dialogSpeaker   = obj.name;
+                showBox(obj.name, obj.lines[0]);
+            }
+            function advancePlain() {
+                dialogLineIndex++;
+                if (dialogLineIndex >= dialogLines.length) hideBox();
+                else showBox(dialogSpeaker, dialogLines[dialogLineIndex]);
+            }
+
+            // computer flow
+            function openComputer() {
+                dialogActive    = true;
+                dialogMode      = "computer";
+                dialogLines     = computerIntroLines;
+                dialogLineIndex = 0;
+                showBox("PC", computerIntroLines[0]);
+            }
+            function advanceComputer() {
+                dialogLineIndex++;
+                if (dialogLineIndex < computerIntroLines.length) {
+                    showBox("PC", computerIntroLines[dialogLineIndex]);
+                } else {
+                    dialogMode = "menu";
+                    menuSelectedIndex = 0;
+                    renderMenu();
+                }
+            }
+            function renderMenu() {
+                const html = computerMenuItems.map((item, i) =>
+                    `<div style="line-height:1.4">${i === menuSelectedIndex ? "> " : "  "}${item.label}</div>`
+                ).join("");
+                showBox("PC", html);
+            }
+            function menuUp()   { menuSelectedIndex = (menuSelectedIndex - 1 + computerMenuItems.length) % computerMenuItems.length; renderMenu(); }
+            function menuDown() { menuSelectedIndex = (menuSelectedIndex + 1) % computerMenuItems.length; renderMenu(); }
+            function menuConfirm() {
+                const item = computerMenuItems[menuSelectedIndex];
+                if (item.url) window.open(item.url, "_blank");
+                hideBox();
+            }
+
+            // book flow
+            function openBook() {
+                dialogActive    = true;
+                dialogMode      = "book";
+                dialogLines     = bookPages;
+                dialogLineIndex = 0;
+                showBox("Book", bookPages[0]);
+            }
+            function advanceBook() {
+                dialogLineIndex++;
+                if (dialogLineIndex >= bookPages.length) hideBox();
+                else showBox("Book", bookPages[dialogLineIndex]);
+            }
+
+            // random thought
+            function showRandomThought() {
+                const thought = randomThoughts[Math.floor(Math.random() * randomThoughts.length)];
+                dialogActive    = true;
+                dialogMode      = "plain";
+                dialogLines     = [thought];
+                dialogLineIndex = 0;
+                showBox("Van", thought);
+            }
+
+            function getNearbyInteractable() {
+                // Player body center
+                const px = global_counter_x + 65;
+                const py = global_counter_y + 60;
+                const pw = 50;
+                const ph = 50;
+                // Also probe upward so objects flush against the top wall register
+                const upPx = global_counter_x + 55;
+                const upPy = global_counter_y + 20;
+                const upPw = 70;
+                const upPh = 60;
+                for (const obj of interactables) {
+                    const zx = obj.x, zy = obj.y, zw = obj.w, zh = obj.h;
+                    const mainHit = px < zx + zw && px + pw > zx && py < zy + zh && py + ph > zy;
+                    const upHit   = upPx < zx + zw && upPx + upPw > zx && upPy < zy + zh && upPy + upPh > zy;
+                    if (mainHit || upHit) return obj;
+                }
+                return null;
+            }
+
+            // ── [E] key handler ───────────────────────────────────────────────
+            document.addEventListener("keydown", (e) => {
+
+                if (e.code === "Escape" && dialogActive) { hideBox(); return; }
+
+                if (dialogMode === "menu") {
+                    if (e.code === "ArrowUp")  { e.preventDefault(); menuUp();      return; }
+                    if (e.code === "ArrowDown") { e.preventDefault(); menuDown();    return; }
+                    if (e.code === "Enter")     { e.preventDefault(); menuConfirm(); return; }
+                }
+
+                if (e.code === "KeyE" && !e.repeat) {
+                    if (dialogActive) {
+                        if      (dialogMode === "computer") advanceComputer();
+                        else if (dialogMode === "book")     advanceBook();
+                        else                                advancePlain();
+                        return;
+                    }
+                    const obj = getNearbyInteractable();
+                    if (obj) {
+                        if      (obj.type === "computer") openComputer();
+                        else if (obj.type === "book")     openBook();
+                        else                              openDialog(obj);
+                    } else {
+                        showRandomThought();
+                    }
+                }
+
+                if (e.code === "KeyF") {
+                    const current = document.getElementById("bgm");
+                    if (!audio) { current.play(); audio = true; }
+                    else        { current.pause(); audio = false; }
+                }
+            });
+
+            // ── Collision ─────────────────────────────────────────────────────
+            function AABB_checker(user_position_tl_x = 100, user_position_tl_y = 100, user_width, user_height) {
+                for (let i = 0; i < colliders.length; i++) {
+                    let tl_x = colliders[i][0];
+                    let tl_y = colliders[i][1];
+                    let cw = colliders[i][2];
+                    let ch = colliders[i][3];
+                    if ((user_position_tl_x < tl_x + cw && user_position_tl_x + user_width > tl_x && user_position_tl_y < tl_y + ch && user_position_tl_y + user_height > tl_y)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            let global_counter_y = 100;
+            let global_counter_x = 100;
+            let global_state = "UD";
+            let W_frame = 0;
+            let A_frame = 0;
+            let S_frame = 0;
+            let D_frame = 0;
+
+            let keys = {};
+            let upkeys = {};
+
+            document.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                upkeys[e.code] = false;
+            });
+
+            document.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+                if (e.code == "KeyW") { global_state = "UU"; }
+                else if (e.code == "KeyS") { global_state = "UD"; }
+                else if (e.code == "KeyA") { global_state = "UL"; }
+                else if (e.code == "KeyD") { global_state = "UR"; }
+                upkeys[e.code] = true;
+            });
+
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+
+            // ── Hint overlay positioning ──────────────────────────────────────
+            const hintEl = document.getElementById("interact-hint");
+            const canvasWrapper = canvas.parentElement;
+
+            function updateHint(timestamp) {
+                const nearby = getNearbyInteractable();
+                if (nearby && !dialogActive) {
+                    // Position above the player, clamped inside canvas
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const wrapperRect = canvasWrapper.getBoundingClientRect();
+                    const scaleX = canvasRect.width / 700;
+                    const scaleY = canvasRect.height / 700;
+
+                    const centerX = (global_counter_x + 87) * scaleX;
+                    const topY = (global_counter_y - 30) * scaleY;
+
+                    hintEl.style.left = (canvasRect.left - wrapperRect.left + centerX) + "px";
+                    hintEl.style.top = (canvasRect.top - wrapperRect.top + topY) + "px";
+                    hintEl.textContent = `[E] ${nearby.name}`;
+                    hintEl.style.display = "block";
+                } else {
+                    hintEl.style.display = "none";
+                }
+            }
+
+            const player_frames = [[0,0,47,32],[0,32,47,32],[0,64,47,32],[0,96,47,32],[0,128,47,32],[0,160,47,32],[0,192,47,32],[0,224,47,32],[0,256,47,32]];
+            const player_left_frames = [[0,64,47,32],[0,64,47,32],[0,160,47,32],[0,160,47,32],[0,256,47,32],[0,256,47,32]];
+            const player_down_frames = [[0,96,47,32],[0,96,47,32],[0,192,47,32],[0,192,47,32]];
+            const player_up_frames = [[0,128,47,32],[0,128,47,32],[0,224,47,32],[0,224,47,32]];
+            const player_right_frames = [[0,64,47,32],[0,64,47,32],[0,97.1,47,32],[0,97.1,47,32],[0,128,47,32],[0,128,47,32]];
+            const cat_frames = [[0,0,32,32],[32,0,32,32],[64,0,32,32],[96,0,32,32]];
+
+            let frame_index = 0;
+            let player_frame_right_index = 0;
+            let player_frame_left_index = 0;
+            let player_frame_down_index = 0;
+            let player_frame_up_index = 0;
+            let lastTime = 0;
+            let catlastTime = 0;
+            const CAT_FPS = 8;
+            const PLAYER_FPS = 8;
+
+            function loadImages(src) {
+                return new Promise((resolve, reject) => {
+                    const image = new Image();
+                    image.src = src;
+                    image.onload = () => resolve(image);
+                    image.onerror = () => reject;
+                });
+            }
+
+            const offscreen = document.createElement('canvas');
+            gifler('assets/sprite_furnitures/ibm5150_animated.gif').animate(offscreen);
+            const offscreen2 = document.createElement('canvas');
+            gifler('assets/sprite_furnitures/ramen_transparent.gif').animate(offscreen2);
+
+            async function init() {
+                const player        = await loadImages("assets/sprite_character/New Piskel.png");
+                const flipped_player = await loadImages("assets/sprite_character/New Piskel-2.png");
+                const floorsWall    = await loadImages("assets/sprite_furnitures/darkwood_floor.png");
+                const floorsWall_lrk = await loadImages("assets/sprite_furnitures/floorswalls_LRK.png");
+                const desk          = await loadImages("assets/sprite_furnitures/desk_updated.png");
+                const carpet        = await loadImages("assets/sprite_furnitures/carpet.png");
+                const cat           = await loadImages("assets/sprite_furnitures/Cat.png");
+                const bed           = await loadImages("assets/sprite_furnitures/master_bed.png");
+                const sofa1 = await loadImages("assets/sprite_furnitures/sofa_1.png");
+                const sofa2 = await loadImages("assets/sprite_furnitures/sofa_2.png");
+                const table = await loadImages("assets/sprite_furnitures/table.png");
+                const flowerPot = await loadImages("assets/sprite_furnitures/Flower.png");
+                const table_2 = await loadImages("assets/sprite_furnitures/interior_free.png");
+                const book = await loadImages("assets/sprite_furnitures/book_transparent.png");
+                const joystick = await loadImages("assets/sprite_furnitures/joystick.png");
+                const kettlebell = await loadImages("assets/sprite_furnitures/kettlebell.png");
+
+                ctx.imageSmoothingEnabled = false;
+
+                function render(timestamp) {
+                    ctx.clearRect(0, 0, 700, 700);
+                    const usermovement = 2;
+
+                    if (keys['KeyW']) {
+                        if (global_counter_y > 0 && AABB_checker(global_counter_x, global_counter_y - usermovement, 175, 150)) global_counter_y -= usermovement;
+                        global_state = "U";
+                        if (timestamp - lastTime > 1000 / PLAYER_FPS) {
+                            player_frame_up_index = (player_frame_up_index + 1) % 4;
+                            lastTime = timestamp;
+                        }
+                    }
+                    if (keys['KeyA']) {
+                        if (global_counter_x > 0 && AABB_checker(global_counter_x - usermovement, global_counter_y, 175, 150)) global_counter_x -= usermovement;
+                        global_state = "L";
+                        if (timestamp - lastTime > 1000 / PLAYER_FPS) {
+                            player_frame_left_index = (player_frame_left_index + 1) % 6;
+                            lastTime = timestamp;
+                        }
+                    }
+                    if (keys['KeyS']) {
+                        if (global_counter_y < 590 && AABB_checker(global_counter_x, global_counter_y + usermovement, 175, 150)) global_counter_y += usermovement;
+                        global_state = "D";
+                        if (timestamp - lastTime > 1000 / PLAYER_FPS) {
+                            player_frame_down_index = (player_frame_down_index + 1) % 4;
+                            lastTime = timestamp;
+                        }
+                    }
+                    if (keys['KeyD']) {
+                        if (global_counter_x < 640 && AABB_checker(global_counter_x + usermovement, global_counter_y, 175, 150)) global_counter_x += usermovement;
+                        global_state = "R";
+                        if (timestamp - lastTime > 1000 / PLAYER_FPS) {
+                            player_frame_right_index = (player_frame_right_index + 1) % 6;
+                            lastTime = timestamp;
+                        }
+                    }
+
+                    // ── Draw floor ──
+                    for (let i = 0; i < 700; i += 100) {
+                        ctx.drawImage(floorsWall, i, 0, 100, 100);
+                    }
+                    for (let i = 0; i < 700; i += 100) {
+                        for (let j = 100; j < 700; j += 100) {
+                            ctx.drawImage(floorsWall_lrk, i, j, 100, 100);
+                        }
+                    }
+
+                    // ── Draw furniture ──
+                    ctx.drawImage(bed, 0, 300, 200, 200);
+                    ctx.drawImage(desk, -10, 13, 200, 100);
+                    ctx.drawImage(offscreen, 20, 2, 55, 55);
+                    ctx.drawImage(carpet, 300, 300, 200, 200);
+                    ctx.drawImage(sofa1, 305, 165, 200, 150);
+                    ctx.drawImage(sofa2, 495, 300, 130, 200);
+                    ctx.drawImage(table, 490, 200, 120, 120);
+                    ctx.drawImage(flowerPot, 523, 195, 50, 50);
+                    ctx.drawImage(table_2, 0, 500, 75, 75);
+                    ctx.drawImage(offscreen2, 10, 485, 55, 55);
+                    ctx.drawImage(book, 100, 15, 40, 40);
+                    ctx.drawImage(kettlebell, -25, 550, 125, 125);
+                    ctx.drawImage(joystick, 15, 625, 50, 50);
+
+                    // ── Draw cat ──
+                    if (timestamp - catlastTime > 1000 / PLAYER_FPS) {
+                        frame_index = (frame_index + 1) % 4;
+                        catlastTime = timestamp;
+                    }
+                    const [sx, sy, sw, sh] = cat_frames[frame_index];
+                    ctx.drawImage(cat, sx, sy, sw, sh, 337, 290, 120, 120);
+
+                    // ── Draw player ──
+                    if (global_state == "D") {
+                        ctx.drawImage(player, ...player_down_frames[player_frame_down_index + W_frame], global_counter_x, global_counter_y, 175, 150);
+                    } else if (global_state == "U") {
+                        ctx.drawImage(player, ...player_up_frames[player_frame_up_index + W_frame], global_counter_x, global_counter_y, 175, 150);
+                    } else if (global_state == "L") {
+                        ctx.drawImage(player, ...player_left_frames[player_frame_left_index + W_frame], global_counter_x, global_counter_y, 175, 150);
+                    } else if (global_state == "R") {
+                        ctx.drawImage(flipped_player, ...player_right_frames[player_frame_right_index + W_frame], global_counter_x, global_counter_y + 5, 175, 150);
+                    } else if (global_state == "UD") {
+                        ctx.drawImage(player, ...player_frames[0], global_counter_x, global_counter_y, 175, 150);
+                    } else if (global_state == "UU") {
+                        ctx.drawImage(player, ...player_frames[1], global_counter_x, global_counter_y, 175, 150);
+                    } else if (global_state == "UL") {
+                        ctx.drawImage(player, ...player_frames[2], global_counter_x, global_counter_y, 175, 150);
+                    } else if (global_state == "UR") {
+                        ctx.drawImage(flipped_player, ...player_right_frames[0], global_counter_x, global_counter_y + 5, 175, 150);
+                    }
+
+                    updateHint(timestamp);
+                    requestAnimationFrame(render);
+                }
+
+                render(lastTime);
+            }
+
+            init();
+        </script>
+    </body>
+</html>
