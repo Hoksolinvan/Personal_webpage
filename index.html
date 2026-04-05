@@ -58,6 +58,8 @@
         <script>
             let audio = false;
 
+            window.onload(()=>{alert("WASD to move, E to interact, ↓↑ to interact on the computer");};
+
             // ── Collision boxes ──────────────────────────────────────────────
             const colliders = [
                 [-10, 13, 200, 25],
@@ -147,7 +149,7 @@
             const computerMenuItems = [
                 { label: "GitHub",    url: "https://github.com/Hoksolinvan" },
                 { label: "LinkedIn",  url: "https://www.linkedin.com/in/hoksolinvan-chhun-83056b384/" },
-                { label: "Escape", url: null },
+                
             ];
 
             // ── Dialog state ──────────────────────────────────────────────────
