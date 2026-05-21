@@ -8,7 +8,7 @@ Here you will find an interative 2D pixelated environment where you can interact
 
 This implementation was done using purely HTML and Javascript canvas 2D rendering engine. An External Javascript library (Gifler) was used to animate gifs obtained via the unpkg content-delivery network for NPM. 
 
-Other than the player character asset that was manually illustrated using [Piskel](https://www.piskelapp.com/). Most of the assets were obtained from various talent artists from [itch.io](https://itch.io/) and tweaked for my specific use case.
+Other than the player character asset that was manually illustrated using [Piskel](https://www.piskelapp.com/). Most of the assets were obtained from various talented artists from [itch.io](https://itch.io/) and tweaked for my specific use case.
 
 
 ## 🎮 How to use it? 
